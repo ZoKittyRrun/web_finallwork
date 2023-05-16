@@ -15,14 +15,14 @@ const addAssignment: FC = () => {
     form.setFieldsValue({'value': initValue})
   }, [initValue])
 
-  const onFinish = async (value:dataAPI.addAssignmentsParams)=>{
+  const onFinish =  (value:dataAPI.addAssignmentsParams)=>{
     console.log(value)
     confirm({
       title: '确定添加新的作业吗',
       icon: <ExclamationCircleFilled />,
       content: '新的作业提交后无法撤销',
-      onOk() {
-        let res=addAssignments(value)
+      async onOk() {
+        let res=await addAssignments(value)
         if(res?.code===0){
           message.success(res.msg)
           return res

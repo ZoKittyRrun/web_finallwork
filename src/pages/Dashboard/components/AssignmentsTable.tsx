@@ -27,7 +27,7 @@ const columns: ColumnsType<Assignment> = [
   },
 ];
 
-const assignmentsTable:FC<{
+const AssignmentsTable:FC<{
   average:dataAPI.Assignment[]
   studentInfo:dataAPI.Assignment[]
 }>= ({average,studentInfo}) => {
@@ -60,4 +60,4 @@ const assignmentsTable:FC<{
      />
   )
 }
-export default assignmentsTable;
+export default AssignmentsTable;

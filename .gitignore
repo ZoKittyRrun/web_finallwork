@@ -20,7 +20,7 @@ yarn.lock
 package-lock.json
 *bak
 .vscode
-
+.husky
 
 # visual studio code
 .history

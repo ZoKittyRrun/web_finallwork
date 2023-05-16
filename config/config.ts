@@ -144,8 +144,7 @@ export default defineConfig({
     strategy: 'normal',
   },
   requestRecord: {},
-  // exportStatic:{
-  // },
+  exportStatic:{},
   favicons: ['/mao.png'],
   jsMinifier:'terser',
   jsMinifierOptions:{
