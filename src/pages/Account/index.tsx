@@ -1,10 +1,11 @@
+
+
 import React, { useState, useRef, useLayoutEffect } from 'react';
 import { GridContent } from '@ant-design/pro-layout';
 import { Menu } from 'antd';
 import { PageContainer } from "@ant-design/pro-components";
 import BaseView from './components/Baseview';
-// import BindingView from './components/binding';
-// import NotificationView from './components/notification';
+
 
 import SecurityView from './components/Security';
 import styles from './style.less';

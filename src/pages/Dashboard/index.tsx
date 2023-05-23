@@ -13,14 +13,15 @@ const Forms: React.FC = () => {
   return (
     <>
       {
-        initialState?.currentUser?.isAdmin &&selectedStudent === 0 ?(
+        initialState?.currentUser?.isAdmin && selectedStudent === 0 ?(
           <SelectStudent setSelectedStudent={setSelectedStudent}></SelectStudent>
         ):(
+          initialState?.currentUser ?
             <Dashboard
               isAdmin={initialState?.currentUser?.isAdmin}
               id={selectedStudent}
               setSelectedStudent={setSelectedStudent}
-            ></Dashboard>
+            ></Dashboard>:''
         )
       }
     </>

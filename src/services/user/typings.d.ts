@@ -25,6 +25,7 @@ declare namespace userAPI {
     avatar?: string;
     email?: string;
     phone?: string;
+    isAdmin?: boolean;
   }
 
   type changeUserInfoParams = {

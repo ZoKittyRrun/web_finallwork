@@ -4,7 +4,7 @@ import Throttle from "@antv/util/src/throttle";
 import {useUpdateEffect} from "ahooks";
 
 const PieComposition :FC<{
-  settings:adminAPI.settingsRes
+  settings?:adminAPI.settingsRes
   Throttling?:number
 }>= ({settings:set,Throttling}) => {
   const [settings,setSettings]=useState<adminAPI.settingsRes>({})

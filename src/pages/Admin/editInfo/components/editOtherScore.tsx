@@ -1,12 +1,11 @@
 import React, {FC, useEffect, useState} from 'react';
-import {Button, Form, Input, InputNumber, message} from "antd";
-import {reject} from "lodash";
+import {Button, Form, Input, message} from "antd";
 import {changeOtherScore} from "@/services/data";
 
 
 const editOtherScore:FC<{
-  data:dataAPI.studentInfo
-  userId:number
+  data:dataAPI.studentInfo | undefined
+  userId:number | undefined
 }>=({data,userId})=>{
   const [form]=Form.useForm()
   const [loading,setLoading]=useState(false)

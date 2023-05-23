@@ -1,5 +1,5 @@
 import React from 'react';
-import {Button, Input, Skeleton, Spin, Upload, message} from 'antd';
+import {Button, Input, Skeleton, Spin, Upload, message, Avatar} from 'antd';
 import ProForm, {
   ProFormText,
 } from '@ant-design/pro-form';
@@ -16,7 +16,7 @@ const AvatarView = ({avatar}: { avatar: string }) => (
   <>
     <div className={styles.avatar_title}>头像</div>
     <div className={styles.avatar}>
-      <img src={avatar} alt="头像地址出错"/>
+      <Avatar className={styles.avatar} src={avatar} alt="头像地址出错"/>
     </div>
   </>
 );
@@ -28,7 +28,6 @@ const BaseView: React.FC = () => {
   });
 
   const getAvatarURL = () => {
-    console.log('currentUser', currentUser)
     if (currentUser) {
       return currentUser.avatar;
     }

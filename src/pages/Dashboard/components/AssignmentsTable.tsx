@@ -54,7 +54,7 @@ const AssignmentsTable:FC<{
        dataSource={data}
        columns={columns}
        pagination={{
-          pageSize: 7,
+          pageSize: 5,
        }}
        height={300}
      />

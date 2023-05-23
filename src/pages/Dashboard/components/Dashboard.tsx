@@ -56,13 +56,14 @@ const PageHeaderContent: FC<{
 const ExtraContent: React.FC<{
   studentInfo: dataAPI.studentInfo,
   setting: adminAPI.settingsRes,
-  isLoading: boolean
-}> = ({studentInfo, setting, isLoading}) => {
+  isLoading: boolean,
+  isAdmin: boolean
+}> = ({studentInfo, setting, isLoading,isAdmin}) => {
   if (isLoading) return (<Skeleton active/>)
   return (
     <div className={styles.extraContent}>
       <div className={styles.statItem}>
-        <Statistic title="平均分数" value={getSumCount(studentInfo, setting)}/>
+        <Statistic title="平均分数" value={ isAdmin? getSumCount(studentInfo, setting):studentInfo.totalScore }/>
       </div>
     </div>
   )
@@ -116,6 +117,7 @@ const Dashboard: FC<{
         studentInfo={studentMsg}
         setting={setting}
         isLoading={isLoading}
+        isAdmin={isAdmin}
       />}
     >
       <Row gutter={[24, 60]}
@@ -140,7 +142,7 @@ const Dashboard: FC<{
               </Col>
               <Col xl={6} lg={12} md={24}>
                 <Statistic loading={isLoading} title="期末测试"
-                           value={setting?.show_examination ? studentMsg?.examination_score || 0 : '**'}/>
+                           value={setting?.show_examination ||isAdmin ? studentMsg?.examination_score || 0 : '**'}/>
               </Col>
             </Row>
           </Card>
@@ -180,7 +182,7 @@ const Dashboard: FC<{
         footer={null}
       >
         <LineComposition average={average?.assignments} studentInfo={studentMsg?.assignments}
-                         config={{height: 200, autoFit: false}}/>
+                         config={{ height: 200, autoFit: false}}/>
         <Statistic title="平均分" value={studentMsg?.assignments_score}
                    style={{paddingLeft: '10px', margin: '10px 0'}}/>
         <AssignmentsTable

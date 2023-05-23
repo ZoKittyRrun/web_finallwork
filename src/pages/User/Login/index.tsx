@@ -186,8 +186,10 @@ const LoginPage: React.FC = () => {
                   {
                     type: 'string',
                     len:13,
+                    pattern:/^\d{13}$/,
                     message: '请输入13位学号！',
-                  }
+                  },
+
                 ]}
               />
               <ProFormText
@@ -204,8 +206,8 @@ const LoginPage: React.FC = () => {
                   },
                   {
                     type: 'string',
-                    max:30,
-                    message:'昵称最长30位'
+                    max:10,
+                    message:'昵称最长10位'
                   }
                   // {
                   //   pattern: /^1\d{10}$/,
@@ -213,7 +215,7 @@ const LoginPage: React.FC = () => {
                   // },
                 ]}
               />
-              <ProFormText
+              <ProFormText.Password
                 fieldProps={{
                   size: 'large',
                   prefix: <LockOutlined/>,
@@ -232,7 +234,7 @@ const LoginPage: React.FC = () => {
                   // },
                 ]}
               />
-              <ProFormText
+              <ProFormText.Password
                 fieldProps={{
                   size: 'large',
                   prefix: <LockOutlined/>,

@@ -7,7 +7,7 @@ import EditOtherScore from "@/pages/Admin/editInfo/components/editOtherScore";
 
 
 const editModal: FC<{
-  userId: number
+  userId?: number
 }> = ({userId}) => {
   const [data, setData] = useState<dataAPI.studentInfo>()
   const [loading,setLoading]=useState(true)
@@ -23,12 +23,12 @@ const editModal: FC<{
   const items: TabsProps['items'] = [
     {
       key: '1',
-      label: `修改作业成绩`,
+      label: `修改其他成绩`,
       children: <EditOtherScore data={data} userId={userId}/>,
     },
     {
       key: '2',
-      label: `修改其他成绩`,
+      label: `修改作业成绩`,
       children: <EditTable userId={userId}/>,
     },
   ];
@@ -43,7 +43,6 @@ const editModal: FC<{
           tabBarGutter={8}
         >
         </Tabs>
-
       </Spin>
     </div>
 

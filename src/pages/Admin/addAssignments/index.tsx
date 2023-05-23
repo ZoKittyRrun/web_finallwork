@@ -1,6 +1,6 @@
 import React, {FC, useEffect} from 'react';
-import {FooterToolbar, PageContainer, ProFormList, ProFormGroup} from "@ant-design/pro-components";
-import {Button, Card, Col, Form, Input, InputNumber, message, Modal, Row, Select, Space,FloatButton} from "antd";
+import { PageContainer, } from "@ant-design/pro-components";
+import {Button, Card, Col, Form, InputNumber, message, Modal, Row, FloatButton} from "antd";
 
 import {useRequest} from "umi";
 import {addAssignments, getAllStudents} from "@/services/data";

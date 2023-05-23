@@ -5,6 +5,8 @@ import {
 import { Form, message} from 'antd';
 import React, {useCallback} from "react";
 import {changeNickname, changePassword} from "@/services/user";
+import {useModel} from "@@/exports";
+import {flushSync} from "react-dom";
 
 type DrawerProps = {
   type: string;
@@ -12,7 +14,7 @@ type DrawerProps = {
 
 const Drawer = ({type}: DrawerProps) => {
   const [form] = Form.useForm<{ name: string; company: string }>();
-
+  const {setInitialState,initialState} = useModel('@@initialState');
   const ProFormItemPwd: React.FC = useCallback(() => {
     return (
       <>
@@ -86,6 +88,12 @@ const Drawer = ({type}: DrawerProps) => {
       res=await changeNickname({value:values.newNickname});
       if(res?.code===0){
         message.success(res.msg);
+        flushSync(() => {
+          setInitialState((s: any) => ({
+            ...s,
+            currentUser: {...initialState?.currentUser,name:values.newNickname} ,
+          }));
+        });
         return true;
       }else {
         return false

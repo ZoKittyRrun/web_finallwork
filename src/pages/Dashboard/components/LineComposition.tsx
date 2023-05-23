@@ -18,7 +18,6 @@ const LineComposition: FC<{
         value: average[i].score,
         category: '平均分',
       });
-
     }
     for(let i=0;i<studentInfo.length;i++){
       data.push({

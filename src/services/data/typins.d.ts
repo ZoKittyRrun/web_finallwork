@@ -18,6 +18,7 @@ declare namespace dataAPI {
     assignments_score: number;
     daily_score:       number;
     examination_score: number;
+    review_score:      number;
     middle_score:      number;
     nickname:          string;
     userId:            number;
@@ -34,6 +35,7 @@ declare namespace dataAPI {
   }
 
   type studentInfo={
+    totalScore?: number;
     nickname:          string;
     assignments:       Assignment[];
     assignments_score: number;

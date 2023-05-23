@@ -39,3 +39,5 @@ screenshot
 .eslintcache
 
 build
+
+/public/service

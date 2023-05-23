@@ -1,7 +1,7 @@
-import React, {FC, useEffect, useState} from 'react';
+import React, {FC,  useState} from 'react';
 import {changeOneWork, getStudentInfoById} from "@/services/data";
 import {useRequest} from "umi";
-import {Form, Input, InputNumber, message, Popconfirm, Spin, Table, Typography} from "antd";
+import {Form,  InputNumber, message, Popconfirm, Spin, Table, Typography} from "antd";
 import type { ProColumns } from '@ant-design/pro-components';
 
 
@@ -11,25 +11,17 @@ interface Item {
   score: number;
 }
 
-const editTable:FC<{
-  userId:number
+const EditTable:FC<{
+  userId?:number
 }>=({userId})=>{
   const {data,loading}=useRequest(()=>{
     return getStudentInfoById(userId)
   })
   const [form] = Form.useForm();
-  const [editingKey, setEditingKey] = useState('');
+  const [editingKey, setEditingKey] = useState<any>("");
   const [datas, setData] = useState();
   const [changLoading,setChangeLoading]=useState(false)
   const isEditing = (record:any) => record.id === editingKey;
-  // const [data,setData]=useState<dataAPI.Assignment[]>([])
-  // useEffect(()=>{
-  //   getStudentInfoById(userId).then((res)=>{
-  //     if(res?.code===1){
-  //       setData(res.data.assignments)
-  //     }
-  //   })
-  // },[])
 
   const edit = (record: Partial<Item> & { key: React.Key }) => {
     form.setFieldsValue({ ...record });
@@ -125,10 +117,6 @@ const editTable:FC<{
   const EditableCell: React.FC<EditableCellProps> = ({
                                                        editing,
                                                        dataIndex,
-                                                       title,
-                                                       inputType,
-                                                       record,
-                                                       index,
                                                        children,
                                                        ...restProps
                                                      }) => {
@@ -191,12 +179,14 @@ const editTable:FC<{
             pagination={{
               onChange: cancel,
             }}
+            pagination={{
+              pageSize: 5,
+            }}
           >
-
           </Table>
         </Form>
       </Spin>
     </>
   )
 }
-export default editTable;
+export default EditTable;
