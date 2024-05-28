@@ -102,18 +102,18 @@ export default () => {
     };
 
     try {
-      // const response = await fetch('/api/changePlanStatus', {
-      //   method: 'POST',
-      //   body: JSON.stringify(requestData),
-      // });
+      const response = await fetch('updatePlan', {
+        method: 'POST',
+        body: JSON.stringify(requestData),
+      });
 
-      // const result = await response.json();
+      const result = await response.json();
 
-      //mock
-      const result = {
-        code: 0,
-        msg: '状态修改成功',
-      };
+      //   //mock
+      //   const result = {
+      //     code: 0,
+      //     msg: '状态修改成功',
+      //   };
       console.log(result);
 
       if (result.code === 0) {
@@ -153,20 +153,17 @@ export default () => {
         endTime: formattedEndTime,
       };
 
-      // 添加按钮请求
-      // const response = await fetch('/api/addPlan', {
-      //   method: 'POST',
-      //   body: JSON.stringify(requestData),
-      //   headers: {
-      //     'Content-Type': 'application/json',
-      //   },
-      // });
-      // const result = await response.json();
+      //   添加按钮请求
+      const response = await fetch('/api/bookingPlan', {
+        method: 'POST',
+        body: JSON.stringify(requestData),
+      });
+      const result = await response.json();
 
-      const result = {
-        code: 0,
-        msg: '新增计划成功',
-      };
+      //   const result = {
+      //     code: 0,
+      //     msg: '新增计划成功',
+      //   };
 
       // 根据后端返回的结果进行处理
       if (result.code === 0) {
