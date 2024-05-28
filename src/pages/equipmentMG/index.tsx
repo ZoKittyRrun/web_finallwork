@@ -1,36 +1,59 @@
 import { useAntdTable } from 'ahooks';
 import { Button, Col, Form, Input, message, Row, Select, Table } from 'antd';
 import { useState } from 'react';
+
 const { Option } = Select;
 
-interface Equipment {
+interface Course {
   id: number;
   name: string;
-  type: string;
+  teacher: string;
+  startTime: string;
+  endTime: string;
   status: string;
-  createTime: string | null;
 }
 
 interface Result {
   total: number;
-  list: Equipment[];
+  list: Course[];
 }
 
 // 模拟的数据
-const mockData: Equipment[] = [
-  { id: 1, name: '跑步机1111', type: '跑步机', status: '正常', createTime: '2023-05-27' },
-  { id: 2, name: '椭圆机2222', type: '椭圆机', status: '维护中', createTime: '2023-05-28' },
-  { id: 3, name: '蝴蝶机3333', type: '蝴蝶机', status: '预约中', createTime: '2023-05-28' },
-  // 可以添加更多模拟数据
+const mockData: Course[] = [
+  {
+    id: 1,
+    name: '瘦腿',
+    teacher: '李教练',
+    startTime: '2023-06-01 10:00',
+    endTime: '2023-06-01 11:00',
+    status: '正常',
+  },
+  {
+    id: 2,
+    name: '瘦腰',
+    teacher: '王教练',
+    startTime: '2023-06-01 12:00',
+    endTime: '2023-06-01 13:00',
+    status: '维修中',
+  },
+  {
+    id: 3,
+    name: '瘦头',
+    teacher: '张教练',
+    startTime: '2023-06-02 14:00',
+    endTime: '2023-06-02 15:00',
+    status: '已下线',
+  },
 ];
 
+// 获取表格数据
 const getTableData = ({ current, pageSize }, formData: Object): Promise<Result> => {
   // 模拟查询条件过滤
   let filteredData = mockData.filter((item) => {
     return Object.entries(formData).every(([key, value]) => {
       if (!value) return true;
       if (key === 'name') return item.name.includes(value);
-      if (key === 'type') return item.type.includes(value);
+      if (key === 'teacher') return item.teacher.includes(value);
       if (key === 'status') return item.status === value;
       return true;
     });
@@ -47,48 +70,12 @@ const getTableData = ({ current, pageSize }, formData: Object): Promise<Result> 
   });
 };
 
-const reserveEquipment = async (record: Equipment): Promise<void> => {
-  try {
-    // 这里模拟后端请求
-    // const response = await fetch('/api/reserve', {
-    //   method: 'POST',
-    //   headers: {
-    //     'Content-Type': 'application/json',
-    //   },
-    //   body: JSON.stringify({
-    //     id: record.id,
-    //   }),
-    // });
-
-    // const result = await response.json();
-    const result = {
-      code: 0,
-      startTime: 0,
-      endTime: 0,
-      state: 0,
-    };
-    console.log(result);
-
-    if (result.code === 0) {
-      message.success(`预约成功: ${record.name}`);
-    } else {
-      message.error('预约失败');
-    }
-  } catch (error) {
-    message.error('预约失败，请稍后再试');
-  }
-};
-
 export default () => {
   const [data, setData] = useState(mockData);
   const [form] = Form.useForm();
 
-  const { tableProps, search, params } = useAntdTable(getTableData, {
-    defaultPageSize: 5,
-    form,
-  });
+  // 表格重绘
   const changeTable = (value: string) => {
-    // 根据筛选条件的变化重新获取数据
     const newData = mockData.filter((item) => {
       if (value === '') {
         return true; // 如果筛选条件为空，则返回所有数据
@@ -96,115 +83,166 @@ export default () => {
         return item.status === value; // 否则只返回符合筛选条件的数据
       }
     });
-    // 更新状态以重新渲染表格
     setData(newData);
   };
 
+  const { tableProps, search, params } = useAntdTable(getTableData, {
+    defaultPageSize: 5,
+    form,
+  });
+
   const { type, changeType, submit, reset } = search;
-  const handleChange = (record: Equipment, value: any) => {
-    setData((prevData) =>
-      prevData.map((item) => (item.id === record.id ? { ...item, status: value } : item)),
-    );
-    submit();
-    message.success(`修改状态成功: ${record.name}`);
+
+  // 按钮控制
+  const handleChange = async (record: Course) => {
+    if (record.status === '正常' || record.status === '预约中') {
+      await changeEquiStatus(record, record.status === '预约中' ? 1 : 0);
+    } else {
+      message.warning(`当前状态为 ${record.status}，无法进行预约操作`);
+    }
   };
 
+  // 更改器材状态
+  const changeEquiStatus = async (record: Course, state: number): Promise<void> => {
+    const requestData = {
+      id: record.id,
+      startTime: new Date(record.startTime).getTime(),
+      endTime: new Date(record.endTime).getTime(),
+      state,
+    };
+
+    try {
+      // const response = await fetch('/api/changeCoursestatus', {
+      //   method: 'POST',
+      //   headers: {
+      //     'Content-Type': 'application/json',
+      //   },
+      //   body: JSON.stringify(requestData),
+      // });
+
+      // const result = await response.json();
+
+      //mock
+      const result = {
+        code: 0,
+        msg: '状态修改成功',
+      };
+
+      if (result.code === 0) {
+        const nextStatus = record.status === '正常' ? '预约中' : '正常';
+        const newData = data.map((item) =>
+          item.id === record.id ? { ...item, status: nextStatus } : item,
+        );
+        setData(newData);
+        submit();
+        message.success(`${state === 1 ? '预约成功' : '取消预约成功'}: ${record.name}`);
+      } else {
+        message.error('操作失败');
+      }
+    } catch (error) {
+      message.error('操作失败，请稍后再试');
+    }
+  };
+
+  // 表单项
   const columns = [
     {
       title: 'ID',
       dataIndex: 'id',
     },
     {
-      title: 'Name',
+      title: '课程名称',
       dataIndex: 'name',
     },
     {
-      title: 'Type',
-      dataIndex: 'type',
+      title: '教练',
+      dataIndex: 'teacher',
     },
     {
-      title: 'Status',
+      title: '开始时间',
+      dataIndex: 'startTime',
+    },
+    {
+      title: '结束时间',
+      dataIndex: 'endTime',
+    },
+    {
+      title: '状态',
       dataIndex: 'status',
-    },
-    {
-      title: 'Create Time',
-      dataIndex: 'createTime',
-      render: (text) => text || 'N/A',
     },
     {
       title: '操作',
       render: (text, record) => (
-        <>
-          <Select
-            defaultValue={record.status}
-            style={{ width: 120 }}
-            onChange={(value) => handleChange(record, value)}
-          >
-            <Option value="空闲">空闲</Option>
-            <Option value="预约中">预约中</Option>
-            <Option value="维护中">维护中</Option>
-          </Select>
-        </>
+        <Button
+          onClick={() => handleChange(record)}
+          disabled={record.status === '维修中' || record.status === '已下线'}
+        >
+          {record.status === '正常' ? '预约' : record.status === '预约中' ? '取消预约' : '不可操作'}
+        </Button>
       ),
     },
   ];
 
+  // 进阶表单
   const advanceSearchForm = (
     <div>
       <Form form={form}>
         <Row gutter={24}>
           <Col span={8}>
-            <Form.Item label="Name" name="name">
-              <Input placeholder="Name" />
+            <Form.Item label="课程名称" name="name">
+              <Input placeholder="课程名称" />
             </Form.Item>
           </Col>
           <Col span={8}>
-            <Form.Item label="Type" name="type">
-              <Input placeholder="Type" />
+            <Form.Item label="教练" name="teacher">
+              <Input placeholder="教练" />
             </Form.Item>
           </Col>
           <Col span={8}>
-            <Form.Item label="Status" name="status">
-              <Select placeholder="Select Status">
-                <Option value="">All</Option>
+            <Form.Item label="状态" name="status">
+              <Select placeholder="选择状态">
+                <Option value="">全部</Option>
                 <Option value="正常">正常</Option>
-                <Option value="维护中">维护中</Option>
                 <Option value="预约中">预约中</Option>
+                <Option value="维修中">维修中</Option>
+                <Option value="已下线">已下线</Option>
               </Select>
             </Form.Item>
           </Col>
         </Row>
         <Row gutter={24} justify="end" style={{ marginBottom: 24 }}>
           <Button type="primary" onClick={submit}>
-            Search
+            搜索
           </Button>
           <Button onClick={reset} style={{ marginLeft: 16 }}>
-            Reset
+            重置
           </Button>
           <Button type="link" onClick={changeType}>
-            Simple Search
+            简单搜索
           </Button>
         </Row>
       </Form>
     </div>
   );
 
+  // 搜索表单
   const searchForm = (
     <div style={{ marginBottom: 16 }}>
       <Form form={form} style={{ display: 'flex', justifyContent: 'flex-end' }}>
         <Form.Item name="status" initialValue="">
           <Select style={{ width: 120, marginRight: 16 }} onChange={(value) => changeTable(value)}>
-            <Option value="">All</Option>
+            <Option value="">全部</Option>
             <Option value="正常">正常</Option>
-            <Option value="维护中">维护中</Option>
             <Option value="预约中">预约中</Option>
+            <Option value="维修中">维修中</Option>
+            <Option value="已下线">已下线</Option>
           </Select>
         </Form.Item>
         <Form.Item name="name">
-          <Input.Search placeholder="Enter Name" style={{ width: 240 }} onSearch={submit} />
+          <Input.Search placeholder="课程名称" style={{ width: 240 }} onSearch={submit} />
         </Form.Item>
         <Button type="link" onClick={changeType}>
-          Advanced Search
+          高级搜索
         </Button>
       </Form>
     </div>
@@ -217,8 +255,9 @@ export default () => {
         columns={columns}
         rowKey="id"
         style={{ overflow: 'auto' }}
-        {...tableProps}
         dataSource={data}
+        pagination={tableProps.pagination}
+        onChange={tableProps.onChange}
       />
     </div>
   );

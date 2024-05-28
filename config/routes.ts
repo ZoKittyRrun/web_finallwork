@@ -20,20 +20,19 @@ export default [
   {
     name: '健身器材管理',
     path: '/equipmentManagement',
-    icon: 'PlayCircleOutlined',
+    icon: 'ClockCircleOutlined',
     component: './equipmentMG',
   },
-
-  // {
-  //   name: '健身计划管理',
-  //   path: '/fitPlan',
-  //   icon: 'PlayCircleOutlined',
-  //   component: './fitPlan',
-  // },
+  {
+    name: '健身计划管理',
+    path: '/fitPlan',
+    icon: 'FormOutlined',
+    component: './fitPlan',
+  },
   {
     name: '健身课程管理',
     path: '/fitCourse',
-    icon: 'PlayCircleOutlined',
+    icon: 'TeamOutlined',
     component: './fitCourse',
   },
   // { name: '查询表格', icon: 'table', path: '/list', component: './TableList' },

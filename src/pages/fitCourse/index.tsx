@@ -1,6 +1,7 @@
 import { useAntdTable } from 'ahooks';
 import { Button, Col, Form, Input, message, Row, Select, Table } from 'antd';
 import { useState } from 'react';
+
 const { Option } = Select;
 
 interface Course {
@@ -69,36 +70,6 @@ const getTableData = ({ current, pageSize }, formData: Object): Promise<Result> 
   });
 };
 
-const reserveCourse = async (record: Course): Promise<void> => {
-  try {
-    // 模拟后端请求
-    // const response = await fetch('/api/reserve', {
-    //   method: 'POST',
-    //   headers: {
-    //     'Content-Type': 'application/json',
-    //   },
-    //   body: JSON.stringify({
-    //     id: record.id,
-    //   }),
-    // });
-
-    // const result = await response.json();
-    const result = {
-      code: 0,
-      msg: '预约成功',
-    };
-    console.log(result);
-
-    if (result.code === 0) {
-      message.success(`预约成功: ${record.name}`);
-    } else {
-      message.error('预约失败');
-    }
-  } catch (error) {
-    message.error('预约失败，请稍后再试');
-  }
-};
-
 export default () => {
   const [data, setData] = useState(mockData);
   const [form] = Form.useForm();
@@ -107,41 +78,65 @@ export default () => {
     defaultPageSize: 5,
     form,
   });
-  console.log('tableProps');
 
   const { type, changeType, submit, reset } = search;
 
-  const handleChange = (record: Course, value: string) => {
-    // 更新前端数据
-    const newData = data.map((item) => (item.id === record.id ? { ...item, status: value } : item));
-    setData(newData);
-    message.success(`修改状态成功: ${record.name} 修改为 ${value}`);
-    submit();
+  //控制按钮状态修改
+  const handleChange = async (record: Course) => {
+    const nextStatus = record.status === '空闲' ? '预约中' : '空闲';
+    await changeCourseStatus(record, nextStatus);
   };
-  const handleReserve = async (record: Course) => {
-    await reserveCourse(record);
 
-    // 更新前端数据
-    const newData = data.map((item) =>
-      item.id === record.id ? { ...item, status: '预约中' } : item,
-    );
-    setData(newData);
-    submit();
+  //改变课程状态，请求
+  const changeCourseStatus = async (record: Course, nextStatus: string): Promise<void> => {
+    const requestData = {
+      id: record.id,
+      state: nextStatus === '预约中' ? 1 : 0,
+    };
+
+    try {
+      // const response = await fetch('/api/changeCoursestatus', {
+      //   method: 'POST',
+      //   body: JSON.stringify(requestData),
+      // });
+
+      // const result = await response.json();
+
+      //mock
+      const result = {
+        code: 0,
+        msg: '状态修改成功',
+      };
+      console.log(result);
+
+      if (result.code === 0) {
+        message.success(`${nextStatus === '预约中' ? '预约成功' : '取消预约成功'}: ${record.name}`);
+        const newData = data.map((item) =>
+          item.id === record.id ? { ...item, status: nextStatus } : item,
+        );
+        setData(newData);
+        submit();
+      } else {
+        message.error('操作失败');
+      }
+    } catch (error) {
+      message.error('操作失败，请稍后再试');
+    }
   };
-  //更新前端数据
+
+  //更新表格渲染
   const changeTable = (value: string) => {
-    // 根据筛选条件的变化重新获取数据
     const newData = mockData.filter((item) => {
       if (value === '') {
-        return true; // 如果筛选条件为空，则返回所有数据
+        return true;
       } else {
-        return item.status === value; // 否则只返回符合筛选条件的数据
+        return item.status === value;
       }
     });
-    // 更新状态以重新渲染表格
     setData(newData);
   };
 
+  //表单项
   const columns = [
     {
       title: 'ID',
@@ -170,20 +165,14 @@ export default () => {
     {
       title: '操作',
       render: (text, record) => (
-        <>
-          <Select
-            defaultValue={record.status}
-            style={{ width: 120 }}
-            onChange={(value) => handleChange(record, value)}
-          >
-            <Option value="空闲">空闲</Option>
-            <Option value="预约中">预约中</Option>
-          </Select>
-        </>
+        <Button onClick={() => handleChange(record)}>
+          {record.status === '空闲' ? '预约' : '取消预约'}
+        </Button>
       ),
     },
   ];
 
+  //进阶表单
   const advanceSearchForm = (
     <div>
       <Form form={form}>
@@ -223,6 +212,7 @@ export default () => {
     </div>
   );
 
+  //搜索表单
   const searchForm = (
     <div style={{ marginBottom: 16 }}>
       <Form form={form} style={{ display: 'flex', justifyContent: 'flex-end' }}>
@@ -242,7 +232,7 @@ export default () => {
       </Form>
     </div>
   );
-
+  //渲染
   return (
     <div>
       {type === 'simple' ? searchForm : advanceSearchForm}
