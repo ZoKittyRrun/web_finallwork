@@ -1,3 +1,4 @@
+import { bookingPlan, getPlan, updatePlan } from '@/services/data';
 import { useAntdTable } from 'ahooks';
 import { Button, Col, Form, Input, message, Row, Select, Table } from 'antd';
 import dayjs from 'dayjs';
@@ -6,9 +7,9 @@ import showAddPlanModal from './component/showAddPlanModal';
 const { Option } = Select;
 interface Plan {
   id: number;
-  name: string;
-  startTime: string;
-  endTime: string;
+  info: string;
+  startTime: number | string;
+  endTime: number | string;
   status: number;
   type: string;
 }
@@ -18,38 +19,27 @@ interface Result {
   list: Plan[];
 }
 
-// 模拟的数据
-const mockData: Plan[] = [
-  {
-    id: 1,
-    name: '瘦腿10分钟',
-    startTime: '2023-06-01 10:00',
-    endTime: '2023-06-01 11:00',
-    status: 1,
-    type: '未完成',
-  },
-  {
-    id: 2,
-    name: '瘦手臂10分钟',
-    startTime: '2023-06-01 10:00',
-    endTime: '2023-06-01 11:00',
-    status: 1,
-    type: '已完成',
-  },
-];
+const response = await getPlan({});
+var mockData = response.data;
+
+//格式化日期
+const formattedData = mockData.map((item: any) => ({
+  ...item,
+  startTime: dayjs.unix(item.startTime).format('YYYY-MM-DD HH:mm:ss'),
+  endTime: dayjs.unix(item.endTime).format('YYYY-MM-DD HH:mm:ss'),
+}));
 
 //获取表格数据
 const getTableData = ({ current, pageSize }, formData: Object): Promise<Result> => {
   // 模拟查询条件过滤
-  let filteredData = mockData.filter((item) => {
+  let filteredData = formattedData.filter((item: Plan) => {
     return Object.entries(formData).every(([key, value]) => {
       if (!value) return true;
-      if (key === 'name') return item.name.includes(value);
+      if (key === 'info') return item.info.includes(value);
       if (key === 'status') return item.status === value;
       return true;
     });
   });
-
   // 模拟分页
   const start = (current - 1) * pageSize;
   const end = current * pageSize;
@@ -62,18 +52,19 @@ const getTableData = ({ current, pageSize }, formData: Object): Promise<Result> 
 };
 
 export default () => {
-  const [data, setData] = useState(mockData);
+  const [data, setData] = useState(formattedData);
   const [form] = Form.useForm();
 
   //表格重绘
   const changeTable = (value: string) => {
-    const newData = mockData.filter((item) => {
+    const newData = formattedData.filter((item: Plan) => {
       if (value === '') {
         return true;
       } else {
-        return item.status === value;
+        return item.type === value;
       }
     });
+
     setData(newData);
   };
 
@@ -91,135 +82,84 @@ export default () => {
 
   //修改计划状态
   const changePlanStatus = async (record: Plan): Promise<void> => {
-    const nextState = record.type === '未完成' ? 1 : 0;
+    record.type = record.type === '未完成' ? '已完成' : '未完成';
     const requestData = {
-      info: record.name,
+      info: record.info,
       state: 1,
-      type: nextState,
-      startTime: new Date(record.startTime).getTime(),
-      endTime: new Date(record.endTime).getTime(),
+      type: record.type,
+      startTime: dayjs(record.startTime).unix(),
+      endTime: dayjs(record.endTime).unix(),
       id: record.id,
     };
-
-    try {
-      const response = await fetch('updatePlan', {
-        method: 'POST',
-        body: JSON.stringify(requestData),
-      });
-
-      const result = await response.json();
-
-      //   //mock
-      //   const result = {
-      //     code: 0,
-      //     msg: '状态修改成功',
-      //   };
-      console.log(result);
-
-      if (result.code === 0) {
-        const nextType = record.type === '未完成' ? '已完成' : '未完成';
-        const newData = data.map((item) =>
-          item.id === record.id ? { ...item, type: nextType } : item,
-        );
-        setData(newData);
-        message.success(`修改状态成功: ${record.name} 修改为 ${nextType}`);
-        submit();
-      } else {
-        message.error('操作失败');
-      }
-    } catch (error) {
-      message.error('操作失败，请稍后再试');
+    const response = await updatePlan(requestData);
+    if (response.code === 0) {
+      const newData = data.map((item: Plan) =>
+        item.id === record.id ? { ...item, type: record.type } : item,
+      );
+      setData(newData);
+      message.success(`修改状态成功: ${record.info} 修改为 ${record.type}`);
+      submit();
     }
   };
 
   // 新增计划按钮点击事件处理
   const handleAddPlan = async () => {
-    try {
-      const { name, dates } = await showAddPlanModal();
-      const [startTime, endTime] = dates;
+    const { name, dates } = await showAddPlanModal();
+    const [startTime, endTime] = dates;
+    console.log(dates);
 
-      const formattedStartTime = dayjs(startTime).format('YYYY-MM-DD HH:mm:ss');
-      const formattedEndTime = dayjs(endTime).format('YYYY-MM-DD HH:mm:ss');
+    const formattedStartTime = dayjs(startTime).unix();
+    const formattedEndTime = dayjs(endTime).unix();
 
-      // 判断是否填写了计划名称
-      if (!name) {
-        message.error('请输入计划名称');
-        return;
-      }
-      // 构造请求数据
-      const requestData = {
-        info: name,
-        startTime: formattedStartTime,
-        endTime: formattedEndTime,
-      };
+    // 判断是否填写了计划名称
+    if (!name) {
+      message.error('请输入计划名称');
+      return;
+    }
+    const requestData = {
+      info: name,
+      startTime: formattedStartTime,
+      endTime: formattedEndTime,
+    };
+    const response = await bookingPlan(requestData);
 
-      //   添加按钮请求
-      const response = await fetch('/api/bookingPlan', {
-        method: 'POST',
-        body: JSON.stringify(requestData),
-      });
-      const result = await response.json();
-
-      //   const result = {
-      //     code: 0,
-      //     msg: '新增计划成功',
-      //   };
-
-      // 根据后端返回的结果进行处理
-      if (result.code === 0) {
-        message.success('新增计划成功');
-
-        const newData = [
-          ...data,
-          {
-            id: data.length + 1,
-            name: name,
-            startTime: formattedStartTime,
-            endTime: formattedEndTime,
-            status: 1,
-            type: '未完成',
-          },
-        ];
-
-        setData(newData);
-        // 刷新表格数据
-        submit();
-      } else {
-        message.error('新增计划失败');
-      }
-    } catch (error) {
-      message.error('新增计划失败，请稍后再试');
+    if (response.code === 0) {
+      const newData = [
+        ...data,
+        {
+          id: data.length + 1,
+          info: name,
+          startTime: dayjs(startTime).format('YYYY-MM-DD HH;mm:ss'),
+          endTime: dayjs(endTime).format('YYYY-MM-DD HH;mm:ss'),
+          status: 1,
+          type: '未完成',
+        },
+      ];
+      setData(newData);
+      submit();
     }
   };
 
   // 删除计划请求
-  const handleDeletePlan = (record: Plan) => {
-    try {
-      // const response = await fetch('/api/deletePlan', {
-      //   method: 'POST',
-      //   body: JSON.stringify({ id: record.id }),
-      // });
-      // const result = await response.json();
+  const handleDeletePlan = async (record: Plan) => {
+    const formattedStartTime = dayjs(record.startTime).unix();
+    const formattedEndTime = dayjs(record.endTime).unix();
+    const requestData = {
+      info: record.info,
+      state: 0,
+      type: record.type,
+      startTime: formattedStartTime,
+      endTime: formattedEndTime,
+      id: record.id,
+    };
+    const response = await updatePlan(requestData);
+    console.log(response);
 
-      const requestData = {
-        id: record.id,
-        state: 0,
-      };
-      // mock
-      const result = {
-        code: 0,
-        msg: '删除成功',
-      };
-      if (result.code === 0) {
-        const newData = data.filter((item) => item.id !== record.id);
-        setData(newData);
-        message.success(`删除成功: ${record.name}`);
-        submit();
-      } else {
-        message.error('操作失败');
-      }
-    } catch (error) {
-      message.info(`删除l${record.name}计划`);
+    if (response.code === 0) {
+      const newData = data.filter((item: Plan) => item.id !== record.id);
+      setData(newData);
+      message.success(`删除成功: ${record.info}`);
+      submit();
     }
   };
 
@@ -231,7 +171,7 @@ export default () => {
     },
     {
       title: '计划名称',
-      dataIndex: 'name',
+      dataIndex: 'info',
     },
     {
       title: '开始时间',
@@ -266,12 +206,12 @@ export default () => {
       <Form form={form}>
         <Row gutter={24}>
           <Col span={8}>
-            <Form.Item label="计划名称" name="name">
+            <Form.Item label="计划名称" name="info">
               <Input placeholder="计划名称" />
             </Form.Item>
           </Col>
           <Col span={8}>
-            <Form.Item label="状态" name="status">
+            <Form.Item label="状态" name="type">
               <Select placeholder="选择状态">
                 <Option value="">全部</Option>
                 <Option value="已完成">已完成</Option>
@@ -299,14 +239,14 @@ export default () => {
   const searchForm = (
     <div style={{ marginBottom: 16 }}>
       <Form form={form} style={{ display: 'flex', justifyContent: 'flex-end' }}>
-        <Form.Item name="status" initialValue="">
+        <Form.Item name="type" initialValue="">
           <Select style={{ width: 120, marginRight: 16 }} onChange={(value) => changeTable(value)}>
             <Option value="">全部</Option>
             <Option value="已完成">已完成</Option>
             <Option value="未完成">未完成</Option>
           </Select>
         </Form.Item>
-        <Form.Item name="name">
+        <Form.Item name="info">
           <Input.Search placeholder="计划名称" style={{ width: 240 }} onSearch={submit} />
         </Form.Item>
         <Button type="link" onClick={changeType}>

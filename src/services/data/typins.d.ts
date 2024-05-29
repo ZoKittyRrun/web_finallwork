@@ -62,4 +62,26 @@ declare namespace dataAPI {
     startTime: number;
     endTime: number;
   };
+  type machineListParams = {};
+  type bookingMachineParamas = {
+    id: number;
+    startTime: number;
+    endTime: number;
+    state: number;
+  };
+  type getAllCourseParamas = {};
+
+  type bookingCourseParamas = {
+    id: number;
+    state: number;
+  };
+  type updatePlanParamas = {
+    endTime: number;
+    id: number;
+    info: string;
+    startTime: number;
+    state: number;
+    type: string;
+  };
+  type getPlanParamas = {};
 }

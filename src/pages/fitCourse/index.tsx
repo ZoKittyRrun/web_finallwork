@@ -1,16 +1,18 @@
+import { bookingCourse, getAllCourse } from '@/services/data';
 import { useAntdTable } from 'ahooks';
-import { Button, Col, Form, Input, message, Row, Select, Table } from 'antd';
-import { useState } from 'react';
+import { Button, Col, Form, Input, Row, Select, Table } from 'antd';
+import dayjs from 'dayjs';
+import { useEffect, useState } from 'react';
 
 const { Option } = Select;
 
 interface Course {
   id: number;
-  name: string;
+  courseName: string;
   teacher: string;
   startTime: string;
   endTime: string;
-  status: string;
+  has_booking: string | number;
 }
 
 interface Result {
@@ -18,61 +20,53 @@ interface Result {
   list: Course[];
 }
 
-// 模拟的数据
-const mockData: Course[] = [
-  {
-    id: 1,
-    name: '瘦腿',
-    teacher: '李教练',
-    startTime: '2023-06-01 10:00',
-    endTime: '2023-06-01 11:00',
-    status: '空闲',
-  },
-  {
-    id: 2,
-    name: '瘦腰',
-    teacher: '王教练',
-    startTime: '2023-06-01 12:00',
-    endTime: '2023-06-01 13:00',
-    status: '空闲',
-  },
-  {
-    id: 3,
-    name: '瘦头',
-    teacher: '张教练',
-    startTime: '2023-06-02 14:00',
-    endTime: '2023-06-02 15:00',
-    status: '预约中',
-  },
-  // 可以添加更多模拟数据
-];
-
-const getTableData = ({ current, pageSize }, formData: Object): Promise<Result> => {
-  // 模拟查询条件过滤
-  let filteredData = mockData.filter((item) => {
-    return Object.entries(formData).every(([key, value]) => {
-      if (!value) return true;
-      if (key === 'name') return item.name.includes(value);
-      if (key === 'teacher') return item.teacher.includes(value);
-      if (key === 'status') return item.status === value;
-      return true;
-    });
-  });
-
-  // 模拟分页
-  const start = (current - 1) * pageSize;
-  const end = current * pageSize;
-  const paginatedData = filteredData.slice(start, end);
-
-  return Promise.resolve({
-    total: filteredData.length,
-    list: paginatedData,
-  });
+const fetchAllCourses = async (): Promise<Course[]> => {
+  const response = await getAllCourse({});
+  return response.data.map((item: any) => ({
+    ...item,
+    startTime: dayjs.unix(item.startTime).format('YYYY-MM-DD HH:mm:ss'),
+    endTime: dayjs.unix(item.endTime).format('YYYY-MM-DD HH:mm:ss'),
+    has_booking: item.has_booking === 1 ? '预约中' : '空闲',
+  }));
 };
 
 export default () => {
-  const [data, setData] = useState(mockData);
+  const [data, setData] = useState<Course[]>([]);
+  const [filteredData, setFilteredData] = useState<Course[]>([]);
   const [form] = Form.useForm();
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const courses = await fetchAllCourses();
+      setData(courses);
+      setFilteredData(courses);
+    };
+
+    fetchData();
+  }, []);
+
+  const getTableData = async ({ current, pageSize }, formData: Object): Promise<Result> => {
+    // 模拟查询条件过滤
+    let filteredData = data.filter((item) => {
+      return Object.entries(formData).every(([key, value]) => {
+        if (!value) return true;
+        if (key === 'courseName') return item.courseName.includes(value);
+        if (key === 'teacher') return item.teacher.includes(value);
+        if (key === 'has_booking') return item.has_booking === value;
+        return true;
+      });
+    });
+
+    // 模拟分页
+    const start = (current - 1) * pageSize;
+    const end = current * pageSize;
+    const paginatedData = filteredData.slice(start, end);
+
+    return Promise.resolve({
+      total: filteredData.length,
+      list: paginatedData,
+    });
+  };
 
   const { tableProps, search, params } = useAntdTable(getTableData, {
     defaultPageSize: 5,
@@ -81,62 +75,43 @@ export default () => {
 
   const { type, changeType, submit, reset } = search;
 
-  //控制按钮状态修改
   const handleChange = async (record: Course) => {
-    const nextStatus = record.status === '空闲' ? '预约中' : '空闲';
+    const nextStatus = record.has_booking === '预约中' ? 0 : 1;
     await changeCourseStatus(record, nextStatus);
   };
 
-  //改变课程状态，请求
-  const changeCourseStatus = async (record: Course, nextStatus: string): Promise<void> => {
+  const changeCourseStatus = async (record: Course, nextStatus: number): Promise<void> => {
     const requestData = {
       id: record.id,
-      state: nextStatus === '预约中' ? 1 : 0,
+      state: nextStatus,
     };
 
-    try {
-      // const response = await fetch('/api/changeCoursestatus', {
-      //   method: 'POST',
-      //   body: JSON.stringify(requestData),
-      // });
+    const response = await bookingCourse(requestData);
 
-      // const result = await response.json();
-
-      //mock
-      const result = {
-        code: 0,
-        msg: '状态修改成功',
-      };
-      console.log(result);
-
-      if (result.code === 0) {
-        message.success(`${nextStatus === '预约中' ? '预约成功' : '取消预约成功'}: ${record.name}`);
-        const newData = data.map((item) =>
-          item.id === record.id ? { ...item, status: nextStatus } : item,
-        );
-        setData(newData);
-        submit();
-      } else {
-        message.error('操作失败');
-      }
-    } catch (error) {
-      message.error('操作失败，请稍后再试');
+    if (response.code === 0) {
+      const newData = data.map((item: Course) =>
+        item.id === record.id
+          ? { ...item, has_booking: nextStatus === 1 ? '预约中' : '空闲' }
+          : item,
+      );
+      setData(newData);
+      setFilteredData(newData);
+      submit();
     }
   };
 
-  //更新表格渲染
   const changeTable = (value: string) => {
-    const newData = mockData.filter((item) => {
+    const newData = data.filter((item: Course) => {
       if (value === '') {
         return true;
       } else {
-        return item.status === value;
+        return item.has_booking === value;
       }
     });
-    setData(newData);
+
+    setFilteredData(newData);
   };
 
-  //表单项
   const columns = [
     {
       title: 'ID',
@@ -144,7 +119,7 @@ export default () => {
     },
     {
       title: '课程名称',
-      dataIndex: 'name',
+      dataIndex: 'courseName',
     },
     {
       title: '教练',
@@ -160,25 +135,24 @@ export default () => {
     },
     {
       title: '状态',
-      dataIndex: 'status',
+      dataIndex: 'has_booking',
     },
     {
       title: '操作',
-      render: (text, record) => (
+      render: (text, record: Course) => (
         <Button onClick={() => handleChange(record)}>
-          {record.status === '空闲' ? '预约' : '取消预约'}
+          {record.has_booking === '预约中' ? '取消预约' : '预约'}
         </Button>
       ),
     },
   ];
 
-  //进阶表单
   const advanceSearchForm = (
     <div>
       <Form form={form}>
         <Row gutter={24}>
           <Col span={8}>
-            <Form.Item label="课程名称" name="name">
+            <Form.Item label="课程名称" name="courseName">
               <Input placeholder="课程名称" />
             </Form.Item>
           </Col>
@@ -188,7 +162,7 @@ export default () => {
             </Form.Item>
           </Col>
           <Col span={8}>
-            <Form.Item label="状态" name="status">
+            <Form.Item label="状态" name="has_booking">
               <Select placeholder="选择状态">
                 <Option value="">全部</Option>
                 <Option value="空闲">空闲</Option>
@@ -212,18 +186,17 @@ export default () => {
     </div>
   );
 
-  //搜索表单
   const searchForm = (
     <div style={{ marginBottom: 16 }}>
       <Form form={form} style={{ display: 'flex', justifyContent: 'flex-end' }}>
-        <Form.Item name="status" initialValue="">
+        <Form.Item name="has_booking" initialValue="">
           <Select style={{ width: 120, marginRight: 16 }} onChange={(value) => changeTable(value)}>
             <Option value="">全部</Option>
             <Option value="空闲">空闲</Option>
             <Option value="预约中">预约中</Option>
           </Select>
         </Form.Item>
-        <Form.Item name="name">
+        <Form.Item name="courseName">
           <Input.Search placeholder="课程名称" style={{ width: 240 }} onSearch={submit} />
         </Form.Item>
         <Button type="link" onClick={changeType}>
@@ -232,7 +205,7 @@ export default () => {
       </Form>
     </div>
   );
-  //渲染
+
   return (
     <div>
       {type === 'simple' ? searchForm : advanceSearchForm}
@@ -240,7 +213,7 @@ export default () => {
         columns={columns}
         rowKey="id"
         style={{ overflow: 'auto' }}
-        dataSource={data}
+        dataSource={filteredData}
         pagination={tableProps.pagination}
         onChange={tableProps.onChange}
       />

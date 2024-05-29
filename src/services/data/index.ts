@@ -63,6 +63,27 @@ export async function addAssignments(values: dataAPI.addAssignmentsParams) {
     console.log(e);
   }
 }
+
 export async function bookingPlan(values: dataAPI.bookingPlanParma) {
   return await post<API.response<null>>(dataPath.bookingPlan, values);
+}
+
+export async function getMachineList(values: dataAPI.machineListParams) {
+  return await post<API.response<null>>(dataPath.getMachineList, values);
+}
+
+export async function bookingMachine(values: dataAPI.bookingMachineParamas) {
+  return await post<API.response<null>>(dataPath.bookingMachine, values);
+}
+export async function getAllCourse(values: dataAPI.getAllCourseParamas) {
+  return await post<API.response<null>>(dataPath.getAllCourse, values);
+}
+export async function bookingCourse(values: dataAPI.bookingCourseParamas) {
+  return await post<API.response<null>>(dataPath.bookingCourse, values);
+}
+export async function updatePlan(values: dataAPI.updatePlanParamas) {
+  return await post<API.response<null>>(dataPath.updatePlan, values);
+}
+export async function getPlan(values: dataAPI.getPlanParamas) {
+  return await post<API.response<null>>(dataPath.getPlan, values);
 }
