@@ -15,7 +15,7 @@ const Settings: ProLayoutProps & {
   fixedHeader: false,
   fixSiderbar: true,
   colorWeak: false,
-  title: '课程管理系统',
+  title: 'GmyPro健身管理系统',
   pwa: true,
   logo: '/mao.png',
   iconfontUrl: '',

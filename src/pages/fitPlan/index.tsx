@@ -2,9 +2,11 @@ import { bookingPlan, getPlan, updatePlan } from '@/services/data';
 import { useAntdTable } from 'ahooks';
 import { Button, Col, Form, Input, message, Row, Select, Table } from 'antd';
 import dayjs from 'dayjs';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import showAddPlanModal from './component/showAddPlanModal';
+
 const { Option } = Select;
+
 interface Plan {
   id: number;
   info: string;
@@ -19,45 +21,55 @@ interface Result {
   list: Plan[];
 }
 
-const response = await getPlan({});
-var mockData = response.data;
-
-//格式化日期
-const formattedData = mockData.map((item: any) => ({
-  ...item,
-  startTime: dayjs.unix(item.startTime).format('YYYY-MM-DD HH:mm:ss'),
-  endTime: dayjs.unix(item.endTime).format('YYYY-MM-DD HH:mm:ss'),
-}));
-
-//获取表格数据
-const getTableData = ({ current, pageSize }, formData: Object): Promise<Result> => {
-  // 模拟查询条件过滤
-  let filteredData = formattedData.filter((item: Plan) => {
-    return Object.entries(formData).every(([key, value]) => {
-      if (!value) return true;
-      if (key === 'info') return item.info.includes(value);
-      if (key === 'status') return item.status === value;
-      return true;
-    });
-  });
-  // 模拟分页
-  const start = (current - 1) * pageSize;
-  const end = current * pageSize;
-  const paginatedData = filteredData.slice(start, end);
-
-  return Promise.resolve({
-    total: filteredData.length,
-    list: paginatedData,
-  });
-};
-
 export default () => {
-  const [data, setData] = useState(formattedData);
+  const [data, setData] = useState<Plan[]>([]);
+  const [filteredData, setFilteredData] = useState<Plan[]>([]);
   const [form] = Form.useForm();
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const response = await getPlan({});
+      const mockData = response.data;
+
+      //格式化日期
+      const formatted = mockData.map((item: any) => ({
+        ...item,
+        startTime: dayjs.unix(item.startTime).format('YYYY-MM-DD HH:mm:ss'),
+        endTime: dayjs.unix(item.endTime).format('YYYY-MM-DD HH:mm:ss'),
+      }));
+      setData(formatted);
+      setFilteredData(formatted);
+    };
+
+    fetchData();
+  }, []);
+
+  //获取表格数据
+  const getTableData = ({ current, pageSize }, formData: Object): Promise<Result> => {
+    // 模拟查询条件过滤
+    let filteredData = data.filter((item: Plan) => {
+      return Object.entries(formData).every(([key, value]) => {
+        if (!value) return true;
+        if (key === 'info') return item.info.includes(value);
+        if (key === 'type') return item.type === value;
+        return true;
+      });
+    });
+
+    // 模拟分页
+    const start = (current - 1) * pageSize;
+    const end = current * pageSize;
+    const paginatedData = filteredData.slice(start, end);
+
+    return Promise.resolve({
+      total: filteredData.length,
+      list: paginatedData,
+    });
+  };
 
   //表格重绘
   const changeTable = (value: string) => {
-    const newData = formattedData.filter((item: Plan) => {
+    const newData = data.filter((item: Plan) => {
       if (value === '') {
         return true;
       } else {
@@ -65,7 +77,7 @@ export default () => {
       }
     });
 
-    setData(newData);
+    setFilteredData(newData);
   };
 
   const { tableProps, search, params } = useAntdTable(getTableData, {
@@ -82,11 +94,11 @@ export default () => {
 
   //修改计划状态
   const changePlanStatus = async (record: Plan): Promise<void> => {
-    record.type = record.type === '未完成' ? '已完成' : '未完成';
+    const newType = record.type === '未完成' ? '已完成' : '未完成';
     const requestData = {
       info: record.info,
       state: 1,
-      type: record.type,
+      type: newType,
       startTime: dayjs(record.startTime).unix(),
       endTime: dayjs(record.endTime).unix(),
       id: record.id,
@@ -94,10 +106,11 @@ export default () => {
     const response = await updatePlan(requestData);
     if (response.code === 0) {
       const newData = data.map((item: Plan) =>
-        item.id === record.id ? { ...item, type: record.type } : item,
+        item.id === record.id ? { ...item, type: newType } : item,
       );
       setData(newData);
-      message.success(`修改状态成功: ${record.info} 修改为 ${record.type}`);
+      setFilteredData(newData);
+      message.success(`修改状态成功: ${record.info} 修改为 ${newType}`);
       submit();
     }
   };
@@ -106,7 +119,6 @@ export default () => {
   const handleAddPlan = async () => {
     const { name, dates } = await showAddPlanModal();
     const [startTime, endTime] = dates;
-    console.log(dates);
 
     const formattedStartTime = dayjs(startTime).unix();
     const formattedEndTime = dayjs(endTime).unix();
@@ -129,8 +141,8 @@ export default () => {
         {
           id: data.length + 1,
           info: name,
-          startTime: dayjs(startTime).format('YYYY-MM-DD HH;mm:ss'),
-          endTime: dayjs(endTime).format('YYYY-MM-DD HH;mm:ss'),
+          startTime: dayjs(startTime).format('YYYY-MM-DD HH:mm:ss'),
+          endTime: dayjs(endTime).format('YYYY-MM-DD HH:mm:ss'),
           status: 1,
           type: '未完成',
         },
@@ -153,7 +165,6 @@ export default () => {
       id: record.id,
     };
     const response = await updatePlan(requestData);
-    console.log(response);
 
     if (response.code === 0) {
       const newData = data.filter((item: Plan) => item.id !== record.id);
@@ -246,12 +257,12 @@ export default () => {
             <Option value="未完成">未完成</Option>
           </Select>
         </Form.Item>
-        <Form.Item name="info">
+        {/* <Form.Item name="info">
           <Input.Search placeholder="计划名称" style={{ width: 240 }} onSearch={submit} />
-        </Form.Item>
-        <Button type="link" onClick={changeType}>
+        </Form.Item> */}
+        {/* <Button type="link" onClick={changeType}>
           高级搜索
-        </Button>
+        </Button> */}
       </Form>
     </div>
   );
@@ -264,7 +275,7 @@ export default () => {
         columns={columns}
         rowKey="id"
         style={{ overflow: 'auto' }}
-        dataSource={data}
+        dataSource={filteredData}
         pagination={tableProps.pagination}
         onChange={tableProps.onChange}
       />

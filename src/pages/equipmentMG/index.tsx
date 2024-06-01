@@ -209,12 +209,12 @@ export default () => {
             <Option value="预约中">预约中</Option>
           </Select>
         </Form.Item>
-        <Form.Item name="name">
+        {/* <Form.Item name="name">
           <Input.Search placeholder="器材名称" style={{ width: 240 }} onSearch={submit} />
-        </Form.Item>
-        <Button type="link" onClick={changeType}>
+        </Form.Item> */}
+        {/* <Button type="link" onClick={changeType}>
           高级搜索
-        </Button>
+        </Button> */}
       </Form>
     </div>
   );

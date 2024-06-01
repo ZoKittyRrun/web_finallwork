@@ -1,61 +1,60 @@
-import React, {FC, useEffect, useRef, useState} from 'react';
 import { Pie } from '@ant-design/plots';
-import Throttle from "@antv/util/src/throttle";
-import {useUpdateEffect} from "ahooks";
+import { useUpdateEffect } from 'ahooks';
+import { FC, useEffect, useRef, useState } from 'react';
 
-const PieComposition :FC<{
-  settings?:adminAPI.settingsRes
-  Throttling?:number
-}>= ({settings:set,Throttling}) => {
-  const [settings,setSettings]=useState<adminAPI.settingsRes>({})
-  const clickTimeOut=useRef();
+const PieComposition: FC<{
+  settings?: adminAPI.settingsRes;
+  Throttling?: number;
+}> = ({ settings: set, Throttling }) => {
+  const [settings, setSettings] = useState<adminAPI.settingsRes>({});
+  const clickTimeOut = useRef();
   //清除点击计时器
-  const clearClickTimeOut=()=>{
-    console.log('clickTimeOut',clickTimeOut.current)
-    if(clickTimeOut.current){
+  const clearClickTimeOut = () => {
+    console.log('clickTimeOut', clickTimeOut.current);
+    if (clickTimeOut.current) {
       clearTimeout(clickTimeOut.current);
       // @ts-ignore
-      clickTimeOut.current=null;
+      clickTimeOut.current = null;
     }
-  }
-  useEffect(()=>{
-    if(Throttling){
-      setSettings(JSON.parse(JSON.stringify(set)))
-    }else{
-      setSettings(set)
+  };
+  useEffect(() => {
+    if (Throttling) {
+      setSettings(JSON.parse(JSON.stringify(set)));
+    } else {
+      setSettings(set);
     }
-  },[])
-  useUpdateEffect(()=>{
-    if(Throttling){
+  }, []);
+  useUpdateEffect(() => {
+    if (Throttling) {
       clearClickTimeOut();
       // @ts-ignore
-      clickTimeOut.current=setTimeout(()=>{
-        setSettings(JSON.parse(JSON.stringify(set)))
-        console.log(set,'set')
-      },Throttling)
-    }else{
-      setSettings(set)
+      clickTimeOut.current = setTimeout(() => {
+        setSettings(JSON.parse(JSON.stringify(set)));
+        console.log(set, 'set');
+      }, Throttling);
+    } else {
+      setSettings(set);
     }
-  },[JSON.stringify(set)])
+  }, [JSON.stringify(set)]);
   const data = [
     {
-      type: '平时分数占比',
+      type: '碳水化合物',
       value: settings.daily_score,
     },
     {
-      type: '期末考试分数占比',
+      type: '脂类',
       value: settings.examination_score,
     },
     {
-      type: '作业分数占比',
+      type: '蛋白质',
       value: settings.assignments_score,
     },
     {
-      type: '期中测试占比',
+      type: '水',
       value: settings.middle_score,
     },
     {
-      type: '讲评分数占比',
+      type: '膳食纤维',
       value: settings.review_score,
     },
   ];

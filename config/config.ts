@@ -1,6 +1,5 @@
 // https://umijs.org/config/
 import { defineConfig } from '@umijs/max';
-import { join } from 'path';
 import defaultSettings from './defaultSettings';
 import proxy from './proxy';
 import routes from './routes';
@@ -73,7 +72,7 @@ export default defineConfig({
    * @name layout 插件
    * @doc https://umijs.org/docs/max/layout-menu
    */
-  title: '课程管理系统',
+  title: 'GmyPro健身管理系统',
   layout: {
     locale: true,
     ...defaultSettings,
@@ -144,13 +143,13 @@ export default defineConfig({
     strategy: 'normal',
   },
   requestRecord: {},
-  exportStatic:{},
+  exportStatic: {},
   favicons: ['/mao.png'],
-  jsMinifier:'terser',
-  jsMinifierOptions:{
-    compress:{
-      drop_console:true,
-      drop_debugger:true
-    }
-  }
+  jsMinifier: 'terser',
+  jsMinifierOptions: {
+    compress: {
+      drop_console: true,
+      drop_debugger: true,
+    },
+  },
 });

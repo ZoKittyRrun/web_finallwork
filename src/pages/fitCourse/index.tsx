@@ -46,7 +46,6 @@ export default () => {
   }, []);
 
   const getTableData = async ({ current, pageSize }, formData: Object): Promise<Result> => {
-    // 模拟查询条件过滤
     let filteredData = data.filter((item) => {
       return Object.entries(formData).every(([key, value]) => {
         if (!value) return true;
@@ -57,7 +56,6 @@ export default () => {
       });
     });
 
-    // 模拟分页
     const start = (current - 1) * pageSize;
     const end = current * pageSize;
     const paginatedData = filteredData.slice(start, end);
@@ -196,12 +194,12 @@ export default () => {
             <Option value="预约中">预约中</Option>
           </Select>
         </Form.Item>
-        <Form.Item name="courseName">
+        {/* <Form.Item name="courseName">
           <Input.Search placeholder="课程名称" style={{ width: 240 }} onSearch={submit} />
-        </Form.Item>
-        <Button type="link" onClick={changeType}>
+        </Form.Item> */}
+        {/* <Button type="link" onClick={changeType}>
           高级搜索
-        </Button>
+        </Button> */}
       </Form>
     </div>
   );
